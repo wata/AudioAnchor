@@ -1,0 +1,12 @@
+<?xml version="1.0" standalone="yes"?>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+    <channel>
+        <title>AudioAnchor</title>
+        <item>
+            <title>0.1.0</title>
+            <pubDate>火, 10 8月 2021 01:09:07 +0900</pubDate>
+            <sparkle:minimumSystemVersion>10.15</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/wata/AudioAnchor/releases/download/0.1.0/AudioAnchor-0.1.0.zip" sparkle:version="1" sparkle:shortVersionString="0.1.0" length="1155242" type="application/octet-stream" sparkle:edSignature="Z9T0FI41zq74WAzPbEGvEt0vNcjEc7niU/K5SRHRyGmfLUkarm2SBnxNd3GxtPaLEN+8NbvTLYTsn7LlB5jGCw=="/>
+        </item>
+    </channel>
+</rss>
