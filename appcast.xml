@@ -14,5 +14,11 @@
             <sparkle:minimumSystemVersion>10.15</sparkle:minimumSystemVersion>
             <enclosure url="https://github.com/wata/AudioAnchor/releases/download/0.1.0/AudioAnchor-0.1.0.zip" sparkle:version="2" sparkle:shortVersionString="0.1.0" length="1155804" type="application/octet-stream" sparkle:edSignature="5EVGVvgH+d+gTS3f22TyySG5Yq5MzXCdKDLweoTi6FP4yY4Hm2xxSPpO100sNJEV5SERO9CgL5uk5FlVYbE+CA=="/>
         </item>
+        <item>
+            <title>0.1.0</title>
+            <pubDate>火, 10 8月 2021 01:09:07 +0900</pubDate>
+            <sparkle:minimumSystemVersion>10.15</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/wata/AudioAnchor/releases/download/0.1.1/AudioAnchor-0.1.1.zip" sparkle:version="3" sparkle:shortVersionString="0.1.1" length="1155729" type="application/octet-stream" sparkle:edSignature="9La1xSgLFIqjwfkLgx7p1G1QUEsDIuyRnlY4RUKDp1AOlzKdP6HnV2VPrhC09k+QCgWkHD90iyj/8ycZIE4kBQ=="/>
+        </item>
     </channel>
 </rss>
