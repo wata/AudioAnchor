@@ -32,6 +32,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                                                queue: .main) { _ in
             self.currentDevices = self.simply.allOutputDevices
             self.setupMenu()
+            self.setupDevice()
             self.setupDeviceNotifications()
         }
     }
@@ -64,19 +65,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         return item
     }
 
-    private func setupDevice() {
-        currentDevices.forEach {
-            guard $0.name == UserDefaults.standard.string(forKey: .anchoredDeviceName) else { return }
-            $0.isDefaultOutputDevice = true
-            $0.isDefaultSystemOutputDevice = true
-        }
+    private func setupDevice(function: String = #function) {
+        let anchoredDeviceName = UserDefaults.standard.string(forKey: .anchoredDeviceName)
+        guard let anchoredDevice = currentDevices.first(where: { $0.name == anchoredDeviceName }) else { return }
+        anchoredDevice.isDefaultOutputDevice = true
+        anchoredDevice.isDefaultSystemOutputDevice = true
     }
 
     private func setupDeviceNotifications() {
         observers.forEach { NotificationCenter.default.removeObserver($0) }
-        observers = currentDevices.compactMap { device in
-            guard device.name != UserDefaults.standard.string(forKey: .anchoredDeviceName) else { return nil }
-            return NotificationCenter.default.addObserver(forName: .deviceIsRunningSomewhereDidChange, object: device, queue: .main) { _ in
+        let anchoredDeviceName = UserDefaults.standard.string(forKey: .anchoredDeviceName)
+        observers = currentDevices.compactMap {
+            guard $0.name != anchoredDeviceName else { return nil }
+            return NotificationCenter.default.addObserver(forName: .deviceIsRunningSomewhereDidChange, object: $0, queue: .main) { _ in
                 self.setupDevice()
             }
         }
