@@ -18,7 +18,17 @@
             <title>0.1.0</title>
             <pubDate>火, 10 8月 2021 01:09:07 +0900</pubDate>
             <sparkle:minimumSystemVersion>10.15</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/wata/AudioAnchor/releases/download/0.1.1/AudioAnchor-0.1.1.zip" sparkle:version="3" sparkle:shortVersionString="0.1.1" length="1155729" type="application/octet-stream" sparkle:edSignature="9La1xSgLFIqjwfkLgx7p1G1QUEsDIuyRnlY4RUKDp1AOlzKdP6HnV2VPrhC09k+QCgWkHD90iyj/8ycZIE4kBQ=="/>
+            <enclosure url="https://github.com/wata/AudioAnchor/releases/download/0.1.2/AudioAnchor-0.1.0.zip" sparkle:version="3" sparkle:shortVersionString="0.1.0" length="1155708" type="application/octet-stream" sparkle:edSignature="p+3wv+a2j6KSoH77V2GHvAm+CPEJ2Ir0GYEINpPe7lN8oe7jJK+cUgP/jGSMh2mEO4A5bDOR9sxG4HO34mF1CQ=="/>
+        </item>
+        <item>
+            <title>0.1.2</title>
+            <pubDate>土, 14 8月 2021 16:05:38 +0900</pubDate>
+            <sparkle:minimumSystemVersion>10.15</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/wata/AudioAnchor/releases/download/0.1.2/AudioAnchor-0.1.2.zip" sparkle:version="4" sparkle:shortVersionString="0.1.2" length="1155843" type="application/octet-stream" sparkle:edSignature="QSyT9a33o8UNMoVgbAZ2xh05QvQhi7bh5bHZe6ZkcTPdEgoEbuP7hjB1TK5HjJfLIllePCWbiYunKjKR0X00Cg=="/>
+            <sparkle:deltas>
+                <enclosure url="https://github.com/wata/AudioAnchor/releases/download/0.1.2/AudioAnchor4-3.delta" sparkle:version="4" sparkle:shortVersionString="0.1.2" sparkle:deltaFrom="3" length="14968" type="application/octet-stream" sparkle:edSignature="tHQnCm0jcm647JMIFUxGurr5xCWgX7qG/H7aQ/46mKaDM6m73TlzgaxmECz/q44JYqXd4yzYlW3xceDCs4wEDw=="/>
+                <enclosure url="https://github.com/wata/AudioAnchor/releases/download/0.1.2/AudioAnchor4-3.delta" sparkle:version="4" sparkle:shortVersionString="0.1.2" sparkle:deltaFrom="3" length="14968" type="application/octet-stream" sparkle:edSignature="tHQnCm0jcm647JMIFUxGurr5xCWgX7qG/H7aQ/46mKaDM6m73TlzgaxmECz/q44JYqXd4yzYlW3xceDCs4wEDw=="/>
+            </sparkle:deltas>
         </item>
     </channel>
 </rss>
