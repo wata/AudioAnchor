@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5A76F84126E664CE0029486E /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A76F84026E664CE0029486E /* Settings.swift */; };
 		5A8787D626B827D70030D814 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 5A8787D526B827D70030D814 /* Sparkle */; };
 		5A973A9226B2FA37006BC3E9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A973A9126B2FA37006BC3E9 /* AppDelegate.swift */; };
 		5A973A9426B2FA3A006BC3E9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5A973A9326B2FA3A006BC3E9 /* Assets.xcassets */; };
@@ -35,6 +36,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		5A76F84026E664CE0029486E /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
 		5A973A8E26B2FA37006BC3E9 /* AudioAnchor.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AudioAnchor.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5A973A9126B2FA37006BC3E9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		5A973A9326B2FA3A006BC3E9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -101,6 +103,7 @@
 			isa = PBXGroup;
 			children = (
 				5A973A9126B2FA37006BC3E9 /* AppDelegate.swift */,
+				5A76F84026E664CE0029486E /* Settings.swift */,
 				5A973A9326B2FA3A006BC3E9 /* Assets.xcassets */,
 				5A973A9526B2FA3A006BC3E9 /* MainMenu.xib */,
 				5A973A9826B2FA3A006BC3E9 /* Info.plist */,
@@ -288,6 +291,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5A76F84126E664CE0029486E /* Settings.swift in Sources */,
 				5A973A9226B2FA37006BC3E9 /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -456,6 +460,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = AudioAnchor/AudioAnchor.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 4;
@@ -480,6 +485,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = AudioAnchor/AudioAnchor.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 4;
