@@ -18,7 +18,7 @@
             <title>0.1.0</title>
             <pubDate>火, 10 8月 2021 01:09:07 +0900</pubDate>
             <sparkle:minimumSystemVersion>10.15</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/wata/AudioAnchor/releases/download/0.1.2/AudioAnchor-0.1.0.zip" sparkle:version="3" sparkle:shortVersionString="0.1.0" length="1155708" type="application/octet-stream" sparkle:edSignature="p+3wv+a2j6KSoH77V2GHvAm+CPEJ2Ir0GYEINpPe7lN8oe7jJK+cUgP/jGSMh2mEO4A5bDOR9sxG4HO34mF1CQ=="/>
+            <enclosure url="https://github.com/wata/AudioAnchor/releases/download/0.1.3/AudioAnchor-0.1.0.zip" sparkle:version="3" sparkle:shortVersionString="0.1.0" length="1155708" type="application/octet-stream" sparkle:edSignature="p+3wv+a2j6KSoH77V2GHvAm+CPEJ2Ir0GYEINpPe7lN8oe7jJK+cUgP/jGSMh2mEO4A5bDOR9sxG4HO34mF1CQ=="/>
         </item>
         <item>
             <title>0.1.2</title>
@@ -28,6 +28,16 @@
             <sparkle:deltas>
                 <enclosure url="https://github.com/wata/AudioAnchor/releases/download/0.1.2/AudioAnchor4-3.delta" sparkle:version="4" sparkle:shortVersionString="0.1.2" sparkle:deltaFrom="3" length="14968" type="application/octet-stream" sparkle:edSignature="tHQnCm0jcm647JMIFUxGurr5xCWgX7qG/H7aQ/46mKaDM6m73TlzgaxmECz/q44JYqXd4yzYlW3xceDCs4wEDw=="/>
                 <enclosure url="https://github.com/wata/AudioAnchor/releases/download/0.1.2/AudioAnchor4-3.delta" sparkle:version="4" sparkle:shortVersionString="0.1.2" sparkle:deltaFrom="3" length="14968" type="application/octet-stream" sparkle:edSignature="tHQnCm0jcm647JMIFUxGurr5xCWgX7qG/H7aQ/46mKaDM6m73TlzgaxmECz/q44JYqXd4yzYlW3xceDCs4wEDw=="/>
+            </sparkle:deltas>
+        </item>
+        <item>
+            <title>0.1.2</title>
+            <pubDate>土, 14 8月 2021 16:05:38 +0900</pubDate>
+            <sparkle:minimumSystemVersion>10.15</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/wata/AudioAnchor/releases/download/0.1.3/AudioAnchor-0.1.3.zip" sparkle:version="5" sparkle:shortVersionString="0.1.3" length="1157720" type="application/octet-stream" sparkle:edSignature="PGslx60jwMMOnqTRDUT6h5nvTJ7n24o4etfORxeMbAPifkVfn7q8BgjMNMimpQm0wWOJq+e89DDuysjFS4UJDA=="/>
+            <sparkle:deltas>
+                <enclosure url="https://github.com/wata/AudioAnchor/releases/download/0.1.3/AudioAnchor5-3.delta" sparkle:version="5" sparkle:shortVersionString="0.1.2" sparkle:deltaFrom="3" length="37021" type="application/octet-stream" sparkle:edSignature="3Od+tZR9tP13ZuuzHE8OaszPQV0nnLjBsL98Q1nhrXf/Js30gekk8IYSI3P6vjD6RrVvHCKSrSRv3pMyVZiRCg=="/>
+                <enclosure url="https://github.com/wata/AudioAnchor/releases/download/0.1.3/AudioAnchor5-3.delta" sparkle:version="5" sparkle:shortVersionString="0.1.2" sparkle:deltaFrom="3" length="37021" type="application/octet-stream" sparkle:edSignature="3Od+tZR9tP13ZuuzHE8OaszPQV0nnLjBsL98Q1nhrXf/Js30gekk8IYSI3P6vjD6RrVvHCKSrSRv3pMyVZiRCg=="/>
             </sparkle:deltas>
         </item>
     </channel>
