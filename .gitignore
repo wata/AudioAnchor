@@ -30,13 +30,5 @@ DerivedData/
 *.dSYM.zip
 *.dSYM
 
-# fastlane
-fastlane/report.xml
-fastlane/Preview.html
-fastlane/screenshots
-fastlane/test_output
-fastlane/swift
-fastlane/FastlaneRunner
-
 # Archive
 dist/
