@@ -1,0 +1,25 @@
+<?xml version="1.0" standalone="yes"?>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+    <channel>
+        <title>AudioAnchor</title>
+        <item>
+            <title>1.0.0</title>
+            <pubDate>Fri, 30 Oct 2026 01:38:12 +0900</pubDate>
+            <sparkle:version>6</sparkle:version>
+            <sparkle:shortVersionString>1.0.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[- Reconnects the anchored Bluetooth device when it is connected to another device, such as AirPods that switched to your iPhone
+- New app icon
+- Universal app for Apple silicon and Intel Macs
+- Fixed: after choosing another output, the previously anchored device was no longer watched
+- Fixed: choosing an output while disabled did not switch to it
+- Updated Sparkle and LaunchAtLogin
+
+Requires macOS 13 or later.
+
+If you are using 0.1.x, this version will not be offered as an automatic update. Please download it from this page and replace the app manually.
+]]></description>
+            <enclosure url="https://github.com/wata/AudioAnchor/releases/download/1.0.0/AudioAnchor-1.0.0.zip" length="7683374" type="application/octet-stream" sparkle:edSignature="HZAIn5wWYMXSikXal7QiC+HmVtW6j2o2z0C2bxDPET6TtYfXsImUPHQZ/DiMLWpZMHYUVXfqxT8HsyoMELYlAg=="/>
+        </item>
+    </channel>
+</rss>
