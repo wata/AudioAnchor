@@ -143,6 +143,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         Settings.anchoredDeviceName = Settings.anchoredDeviceName == sender.title ? nil : sender.title
         // メニューのチェック表示と、固定先以外を監視する deviceObservers を新しい固定先で作り直す
         start()
+        guard Settings.isDisabled else { return }
+        // Disable 中の start() は出力先を切り替えないが、メニューで選んだ出力先にはその場で切り替える
+        setupDevice()
     }
 
     @objc private func toggleLaunchAtLogin(_ sender: NSMenuItem) {
