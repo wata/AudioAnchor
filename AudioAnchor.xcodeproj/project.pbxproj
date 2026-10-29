@@ -16,6 +16,7 @@
 		5A973AAE26B2FA3B006BC3E9 /* AudioAnchorUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A973AAD26B2FA3B006BC3E9 /* AudioAnchorUITests.swift */; };
 		5A973ABD26B2FA91006BC3E9 /* SimplyCoreAudio in Frameworks */ = {isa = PBXBuildFile; productRef = 5A973ABC26B2FA91006BC3E9 /* SimplyCoreAudio */; };
 		5A973AC026B3051D006BC3E9 /* LaunchAtLogin in Frameworks */ = {isa = PBXBuildFile; productRef = 5A973ABF26B3051D006BC3E9 /* LaunchAtLogin */; };
+		5AEBE9C526F8CD550085BBE8 /* BLE.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AEBE9C426F8CD550085BBE8 /* BLE.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -49,6 +50,7 @@
 		5A973AA926B2FA3B006BC3E9 /* AudioAnchorUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AudioAnchorUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		5A973AAD26B2FA3B006BC3E9 /* AudioAnchorUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioAnchorUITests.swift; sourceTree = "<group>"; };
 		5A973AAF26B2FA3B006BC3E9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		5AEBE9C426F8CD550085BBE8 /* BLE.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BLE.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -103,6 +105,7 @@
 			isa = PBXGroup;
 			children = (
 				5A973A9126B2FA37006BC3E9 /* AppDelegate.swift */,
+				5AEBE9C426F8CD550085BBE8 /* BLE.swift */,
 				5A76F84026E664CE0029486E /* Settings.swift */,
 				5A973A9326B2FA3A006BC3E9 /* Assets.xcassets */,
 				5A973A9526B2FA3A006BC3E9 /* MainMenu.xib */,
@@ -293,6 +296,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				5A76F84126E664CE0029486E /* Settings.swift in Sources */,
+				5AEBE9C526F8CD550085BBE8 /* BLE.swift in Sources */,
 				5A973A9226B2FA37006BC3E9 /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -475,7 +479,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
 				MARKETING_VERSION = 0.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.wata.AudioAnchor;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -501,7 +505,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
 				MARKETING_VERSION = 0.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.wata.AudioAnchor;
 				PRODUCT_NAME = "$(TARGET_NAME)";

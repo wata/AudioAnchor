@@ -8,9 +8,22 @@
 import Cocoa
 import Sparkle
 import SimplyCoreAudio
+import IOBluetooth
 
+// TODO: (wataru)
+// 音声出力優先順位付け (e.g. 1. AirPods Pro 2. Soundcore ...)
+// デバイス優先順位付け (e.g. 1. AppleWatch 2. MacBook Pro ...)
+
+// TODO: (wataru) 失敗するとき
+// Bluetooth未接続状態(ケースに仕舞ってる状態)から耳に装着してMacで音楽流すとMac本体から音が流れる 
+//     => deviceListChanged通知より先に再生されてると切り替えされない?
+//     => deviceListChanged通知時に切り替え試行する
+// => サウンドメニューにAirPods表示されてる && AudioAnchorのデバイスリストには表示されてない
+//     => iPhoneに切り替わってるっぽい、Bluetooth接続されてなかったら接続試行する?
+//     => connect.shで接続できた
 @main
 class AppDelegate: NSObject, NSApplicationDelegate {
+    private let ble = BLE()
     private let simply = SimplyCoreAudio()
     private var deviceListObserver: NSObjectProtocol?
     private var deviceObservers = [NSObjectProtocol]()
@@ -39,6 +52,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         deviceListObserver = NotificationCenter.default.addObserver(forName: .deviceListChanged,
                                                                     object: nil,
                                                                     queue: .main) { _ in
+            print("--------------")
+            self.simply.allOutputDevices.forEach { print($0) }
+            print("--------------")
             self.currentDevices = self.simply.allOutputDevices
             self.setupMenu()
             self.setupDevice()
@@ -86,9 +102,21 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         return item
     }
 
-    private func setupDevice() {
+    private func setupDevice(function: String = #function) {
+        print(function)
         let anchoredDeviceName = Settings.anchoredDeviceName
-        guard let anchoredDevice = currentDevices.first(where: { $0.name == anchoredDeviceName }) else { return }
+        guard let anchoredDevice = currentDevices.first(where: { $0.name == anchoredDeviceName }) else {
+            let bluetoothDevice = IOBluetoothDevice.pairedDevices().first {
+                ($0 as? IOBluetoothDevice)?.name == anchoredDeviceName
+            } as? IOBluetoothDevice
+            let result = bluetoothDevice?.openConnection()
+            if result == kIOReturnSuccess {
+                print("Connected")
+            } else {
+                print("Failed")
+            }
+            return
+        }
         anchoredDevice.isDefaultOutputDevice = true
         anchoredDevice.isDefaultSystemOutputDevice = true
     }
@@ -135,5 +163,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func quit(_ sender: NSButton) {
         NSApplication.shared.terminate(self)
+    }
+}
+
+fileprivate extension AudioDevice {
+    // uid => "c4-0b-31-af-b9-ef:output"
+    // addressString => "c4-0b-31-af-b9-ef"
+    var addressString: String? {
+        //([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}
+        return uid
     }
 }

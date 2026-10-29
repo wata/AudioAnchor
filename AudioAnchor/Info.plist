@@ -34,6 +34,8 @@
 	<string>Px7IhkOpAfKxdtNb0c0bDBrfTNqPu4zdiFev5FL+KnQ=</string>
 	<key>SUEnableAutomaticChecks</key>
 	<true/>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>AudioAnchor uses Bluetooth to reconnect your selected audio device.</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
