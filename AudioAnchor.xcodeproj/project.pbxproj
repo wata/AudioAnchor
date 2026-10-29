@@ -11,6 +11,7 @@
 		5A8787D626B827D70030D814 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 5A8787D526B827D70030D814 /* Sparkle */; };
 		5A973A9226B2FA37006BC3E9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A973A9126B2FA37006BC3E9 /* AppDelegate.swift */; };
 		5A973A9426B2FA3A006BC3E9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5A973A9326B2FA3A006BC3E9 /* Assets.xcassets */; };
+		5AA1C0DE0000000000000002 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 5AA1C0DE0000000000000001 /* AppIcon.icon */; };
 		5A973A9726B2FA3A006BC3E9 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 5A973A9526B2FA3A006BC3E9 /* MainMenu.xib */; };
 		5A973AA326B2FA3B006BC3E9 /* AudioAnchorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A973AA226B2FA3B006BC3E9 /* AudioAnchorTests.swift */; };
 		5A973AAE26B2FA3B006BC3E9 /* AudioAnchorUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A973AAD26B2FA3B006BC3E9 /* AudioAnchorUITests.swift */; };
@@ -41,6 +42,7 @@
 		5A973A8E26B2FA37006BC3E9 /* AudioAnchor.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AudioAnchor.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5A973A9126B2FA37006BC3E9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		5A973A9326B2FA3A006BC3E9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		5AA1C0DE0000000000000001 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = AppIcon.icon; sourceTree = "<group>"; };
 		5A973A9626B2FA3A006BC3E9 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		5A973A9826B2FA3A006BC3E9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		5A973A9926B2FA3A006BC3E9 /* AudioAnchor.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = AudioAnchor.entitlements; sourceTree = "<group>"; };
@@ -108,6 +110,7 @@
 				5AEBE9C426F8CD550085BBE8 /* BLE.swift */,
 				5A76F84026E664CE0029486E /* Settings.swift */,
 				5A973A9326B2FA3A006BC3E9 /* Assets.xcassets */,
+				5AA1C0DE0000000000000001 /* AppIcon.icon */,
 				5A973A9526B2FA3A006BC3E9 /* MainMenu.xib */,
 				5A973A9826B2FA3A006BC3E9 /* Info.plist */,
 				5A973A9926B2FA3A006BC3E9 /* AudioAnchor.entitlements */,
@@ -247,6 +250,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				5A973A9426B2FA3A006BC3E9 /* Assets.xcassets in Resources */,
+				5AA1C0DE0000000000000002 /* AppIcon.icon in Resources */,
 				5A973A9726B2FA3A006BC3E9 /* MainMenu.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
