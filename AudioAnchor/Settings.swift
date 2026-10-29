@@ -8,7 +8,7 @@
 import Foundation
 import LaunchAtLogin
 
-struct Settings {
+enum Settings {
     static var isDisabled: Bool {
         get {
             UserDefaults.standard.bool(forKey: .isDisabled)

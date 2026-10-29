@@ -11,24 +11,14 @@ import SimplyCoreAudio
 import LaunchAtLogin
 import IOBluetooth
 
-// TODO: (wataru)
-// 音声出力優先順位付け (e.g. 1. AirPods Pro 2. Soundcore ...)
-// デバイス優先順位付け (e.g. 1. AppleWatch 2. MacBook Pro ...)
-
-// TODO: (wataru) 失敗するとき
-// Bluetooth未接続状態(ケースに仕舞ってる状態)から耳に装着してMacで音楽流すとMac本体から音が流れる 
-//     => deviceListChanged通知より先に再生されてると切り替えされない?
-//     => deviceListChanged通知時に切り替え試行する
-// => サウンドメニューにAirPods表示されてる && AudioAnchorのデバイスリストには表示されてない
-//     => iPhoneに切り替わってるっぽい、Bluetooth接続されてなかったら接続試行する?
-//     => connect.shで接続できた
 @main
-class AppDelegate: NSObject, NSApplicationDelegate {
-    private let ble = BLE()
+final class AppDelegate: NSObject, NSApplicationDelegate {
     private let simply = SimplyCoreAudio()
     private let updaterController = SPUStandardUpdaterController(startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
     private var deviceListObserver: NSObjectProtocol?
     private var deviceObservers = [NSObjectProtocol]()
+    // 通知のたびに接続要求を重ねないよう、接続を試している機器を持っておく
+    private var connectingDevice: IOBluetoothDevice?
     private lazy var currentDevices = simply.allOutputDevices
     private lazy var statusItem: NSStatusItem = {
         let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
@@ -55,14 +45,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         setupDeviceNotifications()
         deviceListObserver = NotificationCenter.default.addObserver(forName: .deviceListChanged,
                                                                     object: nil,
-                                                                    queue: .main) { _ in
-            print("--------------")
-            self.simply.allOutputDevices.forEach { print($0) }
-            print("--------------")
-            self.currentDevices = self.simply.allOutputDevices
-            self.setupMenu()
-            self.setupDevice()
-            self.setupDeviceNotifications()
+                                                                    queue: .main) { [weak self] _ in
+            guard let self else { return }
+            currentDevices = simply.allOutputDevices
+            setupMenu()
+            setupDevice()
+            setupDeviceNotifications()
         }
     }
 
@@ -79,50 +67,58 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let menu = NSMenu()
         let name = Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as? String ?? ""
         let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""
-        menu.addItem(makeMenuItem(title: "Disable", selector: #selector(AppDelegate.toggleDisable(_:)), isEnabled: Settings.isDisabled))
+        menu.addItem(makeMenuItem(title: "Disable", selector: #selector(AppDelegate.toggleDisable(_:)), isOn: Settings.isDisabled))
         menu.addItem(.separator())
         menu.addItem(makeMenuItem(title: "Output", selector: nil))
         let anchoredDeviceName = Settings.anchoredDeviceName
         currentDevices.forEach {
-            menu.addItem(makeMenuItem(title: $0.name, selector: #selector(AppDelegate.anchor(_:)), isEnabled: $0.name == anchoredDeviceName))
+            menu.addItem(makeMenuItem(title: $0.name, selector: #selector(AppDelegate.anchor(_:)), isOn: $0.name == anchoredDeviceName))
         }
         menu.addItem(.separator())
         menu.addItem(makeMenuItem(title: "Check for Updates...", selector: #selector(SPUStandardUpdaterController.checkForUpdates(_:)), target: updaterController))
         menu.addItem(.separator())
-        menu.addItem(makeMenuItem(title: "Launch at Login", selector: #selector(AppDelegate.toggleLaunchAtLogin(_:)), isEnabled: Settings.isLaunchAtLoginEnabled))
+        menu.addItem(makeMenuItem(title: "Launch at Login", selector: #selector(AppDelegate.toggleLaunchAtLogin(_:)), isOn: Settings.isLaunchAtLoginEnabled))
         menu.addItem(makeMenuItem(title: "About \(name) \(version)", selector: #selector(AppDelegate.openGitHub(_:))))
         menu.addItem(makeMenuItem(title: "Quit", selector: #selector(AppDelegate.quit(_:))))
         statusItem.menu = menu
     }
 
-    private func makeMenuItem(title: String, selector: Selector?, target: AnyObject? = nil, isEnabled: Bool? = nil) -> NSMenuItem {
+    private func makeMenuItem(title: String, selector: Selector?, target: AnyObject? = nil, isOn: Bool? = nil) -> NSMenuItem {
         let item = NSMenuItem(title: title, action: selector, keyEquivalent: "")
-        if let target = target {
-            item.target = target
-        }
-        if let isEnabled = isEnabled {
-            item.state = isEnabled ? .on : .off
+        item.target = target
+        if let isOn {
+            item.state = isOn ? .on : .off
         }
         return item
     }
 
-    private func setupDevice(function: String = #function) {
-        print(function)
-        let anchoredDeviceName = Settings.anchoredDeviceName
+    private func setupDevice() {
+        guard let anchoredDeviceName = Settings.anchoredDeviceName else { return }
         guard let anchoredDevice = currentDevices.first(where: { $0.name == anchoredDeviceName }) else {
-            let bluetoothDevice = IOBluetoothDevice.pairedDevices().first {
-                ($0 as? IOBluetoothDevice)?.name == anchoredDeviceName
-            } as? IOBluetoothDevice
-            let result = bluetoothDevice?.openConnection()
-            if result == kIOReturnSuccess {
-                print("Connected")
-            } else {
-                print("Failed")
-            }
+            connectBluetoothDevice(named: anchoredDeviceName)
             return
         }
         anchoredDevice.isDefaultOutputDevice = true
         anchoredDevice.isDefaultSystemOutputDevice = true
+    }
+
+    /**
+     ケースから出した AirPods が iPhone 側につながっていると、Mac の出力先に現れず固定できない。
+     ペアリング済みなら Mac から接続を要求し、出力先に現れた時点で deviceListChanged から固定する
+     */
+    private func connectBluetoothDevice(named name: String) {
+        guard
+            connectingDevice == nil,
+            let device = (IOBluetoothDevice.pairedDevices() as? [IOBluetoothDevice])?.first(where: { $0.name == name }),
+            !device.isConnected()
+        else { return }
+        // target を渡すと非同期になり、メインスレッドを止めない。結果は connectionComplete(_:status:) に届く
+        guard device.openConnection(self) == kIOReturnSuccess else { return }
+        connectingDevice = device
+    }
+
+    @objc private func connectionComplete(_ device: IOBluetoothDevice, status: IOReturn) {
+        connectingDevice = nil
     }
 
     private func setupDeviceNotifications() {
@@ -130,51 +126,35 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let anchoredDeviceName = Settings.anchoredDeviceName
         deviceObservers = currentDevices.compactMap {
             guard $0.name != anchoredDeviceName else { return nil }
-            return NotificationCenter.default.addObserver(forName: .deviceIsRunningSomewhereDidChange, object: $0, queue: .main) { _ in
-                self.setupDevice()
+            return NotificationCenter.default.addObserver(forName: .deviceIsRunningSomewhereDidChange, object: $0, queue: .main) { [weak self] _ in
+                guard let self else { return }
+                setupDevice()
             }
         }
     }
 
-    @objc private func toggleDisable(_ sender: NSButton) {
-        Settings.isDisabled = !Settings.isDisabled
+    @objc private func toggleDisable(_ sender: NSMenuItem) {
+        Settings.isDisabled.toggle()
         Settings.isDisabled ? stop() : start()
         sender.state = Settings.isDisabled ? .on : .off
     }
 
-    @objc private func anchor(_ sender: NSButton) {
-        statusItem.menu?.items.forEach { item in
-            guard currentDevices.contains(where: { $0.name == item.title }) else { return }
-            item.state = .off
-        }
-        guard Settings.anchoredDeviceName != sender.title else {
-            Settings.anchoredDeviceName = nil
-            return
-        }
-        Settings.anchoredDeviceName = sender.title
-        sender.state = .on
-        setupDevice()
+    @objc private func anchor(_ sender: NSMenuItem) {
+        Settings.anchoredDeviceName = Settings.anchoredDeviceName == sender.title ? nil : sender.title
+        // メニューのチェック表示と、固定先以外を監視する deviceObservers を新しい固定先で作り直す
+        start()
     }
 
-    @objc private func toggleLaunchAtLogin(_ sender: NSButton) {
-        Settings.isLaunchAtLoginEnabled = !Settings.isLaunchAtLoginEnabled
+    @objc private func toggleLaunchAtLogin(_ sender: NSMenuItem) {
+        Settings.isLaunchAtLoginEnabled.toggle()
         sender.state = Settings.isLaunchAtLoginEnabled ? .on : .off
     }
 
-    @objc private func openGitHub(_ sender: NSButton) {
+    @objc private func openGitHub(_ sender: NSMenuItem) {
         NSWorkspace.shared.open(URL(string: "https://github.com/wata/AudioAnchor")!)
     }
 
-    @objc private func quit(_ sender: NSButton) {
+    @objc private func quit(_ sender: NSMenuItem) {
         NSApplication.shared.terminate(self)
-    }
-}
-
-fileprivate extension AudioDevice {
-    // uid => "c4-0b-31-af-b9-ef:output"
-    // addressString => "c4-0b-31-af-b9-ef"
-    var addressString: String? {
-        //([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}
-        return uid
     }
 }
