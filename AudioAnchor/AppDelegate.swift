@@ -8,6 +8,7 @@
 import Cocoa
 import Sparkle
 import SimplyCoreAudio
+import LaunchAtLogin
 import IOBluetooth
 
 // TODO: (wataru)
@@ -25,6 +26,7 @@ import IOBluetooth
 class AppDelegate: NSObject, NSApplicationDelegate {
     private let ble = BLE()
     private let simply = SimplyCoreAudio()
+    private let updaterController = SPUStandardUpdaterController(startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
     private var deviceListObserver: NSObjectProtocol?
     private var deviceObservers = [NSObjectProtocol]()
     private lazy var currentDevices = simply.allOutputDevices
@@ -37,6 +39,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }()
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
+        // LaunchAtLogin 4 のヘルパー (SMLoginItemSetEnabled) で登録済みの設定を SMAppService に引き継ぐ。呼ばないと更新後に無効扱いになる
+        LaunchAtLogin.migrateIfNeeded()
         start()
     }
 
@@ -83,7 +87,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             menu.addItem(makeMenuItem(title: $0.name, selector: #selector(AppDelegate.anchor(_:)), isEnabled: $0.name == anchoredDeviceName))
         }
         menu.addItem(.separator())
-        menu.addItem(makeMenuItem(title: "Check for Updates...", selector: #selector(SUUpdater.checkForUpdates(_:)), target: SUUpdater.shared()))
+        menu.addItem(makeMenuItem(title: "Check for Updates...", selector: #selector(SPUStandardUpdaterController.checkForUpdates(_:)), target: updaterController))
         menu.addItem(.separator())
         menu.addItem(makeMenuItem(title: "Launch at Login", selector: #selector(AppDelegate.toggleLaunchAtLogin(_:)), isEnabled: Settings.isLaunchAtLoginEnabled))
         menu.addItem(makeMenuItem(title: "About \(name) \(version)", selector: #selector(AppDelegate.openGitHub(_:))))

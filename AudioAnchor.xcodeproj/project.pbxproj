@@ -143,7 +143,6 @@
 				5A973A8A26B2FA37006BC3E9 /* Sources */,
 				5A973A8B26B2FA37006BC3E9 /* Frameworks */,
 				5A973A8C26B2FA37006BC3E9 /* Resources */,
-				5A973AC126B30542006BC3E9 /* Copy "Launch at Login Helper" */,
 			);
 			buildRules = (
 			);
@@ -268,28 +267,6 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
-/* Begin PBXShellScriptBuildPhase section */
-		5A973AC126B30542006BC3E9 /* Copy "Launch at Login Helper" */ = {
-			isa = PBXShellScriptBuildPhase;
-			alwaysOutOfDate = 1;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			name = "Copy \"Launch at Login Helper\"";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${BUILT_PRODUCTS_DIR}/LaunchAtLogin_LaunchAtLogin.bundle/Contents/Resources/copy-helper-swiftpm.sh\"\n";
-		};
-/* End PBXShellScriptBuildPhase section */
-
 /* Begin PBXSourcesBuildPhase section */
 		5A973A8A26B2FA37006BC3E9 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -396,7 +373,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 11.3;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -452,7 +429,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 11.3;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = macosx;
@@ -479,7 +456,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 12.0;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MARKETING_VERSION = 0.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.wata.AudioAnchor;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -505,7 +482,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 12.0;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MARKETING_VERSION = 0.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.wata.AudioAnchor;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -528,7 +505,7 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 11.3;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.wata.AudioAnchorTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
@@ -551,7 +528,7 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 11.3;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.wata.AudioAnchorTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
@@ -648,7 +625,7 @@
 			repositoryURL = "https://github.com/sparkle-project/Sparkle";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 1.26.0;
+				minimumVersion = 2.10.1;
 			};
 		};
 		5A973ABB26B2FA91006BC3E9 /* XCRemoteSwiftPackageReference "SimplyCoreAudio" */ = {
@@ -656,7 +633,7 @@
 			repositoryURL = "https://github.com/rnine/SimplyCoreAudio";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 4.0.1;
+				minimumVersion = 4.1.1;
 			};
 		};
 		5A973ABE26B3051D006BC3E9 /* XCRemoteSwiftPackageReference "LaunchAtLogin" */ = {
@@ -664,7 +641,7 @@
 			repositoryURL = "https://github.com/sindresorhus/LaunchAtLogin";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 4.1.0;
+				minimumVersion = 5.0.2;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
