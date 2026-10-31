@@ -3,6 +3,17 @@
     <channel>
         <title>AudioAnchor</title>
         <item>
+            <title>1.0.1</title>
+            <pubDate>Sun, 01 Nov 2026 01:58:55 +0900</pubDate>
+            <sparkle:version>7</sparkle:version>
+            <sparkle:shortVersionString>1.0.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[- AudioAnchor is now signed with a Developer ID and notarized by Apple, so it opens without allowing it in System Settings > Privacy & Security.
+- Replaced the SimplyCoreAudio and LaunchAtLogin dependencies with direct Core Audio and SMAppService calls.
+]]></description>
+            <enclosure url="https://github.com/wata/AudioAnchor/releases/download/1.0.1/AudioAnchor-1.0.1.zip" length="3657162" type="application/octet-stream" sparkle:edSignature="TpS0dkCbn6NNSuzw6F6YbPGbaIHQ+RJi2El5NJ77SkfNdU+Pbjrunr8Y8vfgV1SozdHKcxVqI2e0LF6aXiueAg=="/>
+        </item>
+        <item>
             <title>1.0.0</title>
             <pubDate>Fri, 30 Oct 2026 01:38:12 +0900</pubDate>
             <sparkle:version>6</sparkle:version>
