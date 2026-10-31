@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		5A76F84126E664CE0029486E /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A76F84026E664CE0029486E /* Settings.swift */; };
+		5AA1C0DE0000000000000004 /* AudioOutputDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AA1C0DE0000000000000003 /* AudioOutputDevice.swift */; };
 		5A8787D626B827D70030D814 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 5A8787D526B827D70030D814 /* Sparkle */; };
 		5A973A9226B2FA37006BC3E9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A973A9126B2FA37006BC3E9 /* AppDelegate.swift */; };
 		5A973A9426B2FA3A006BC3E9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5A973A9326B2FA3A006BC3E9 /* Assets.xcassets */; };
@@ -15,7 +16,6 @@
 		5A973A9726B2FA3A006BC3E9 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 5A973A9526B2FA3A006BC3E9 /* MainMenu.xib */; };
 		5A973AA326B2FA3B006BC3E9 /* AudioAnchorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A973AA226B2FA3B006BC3E9 /* AudioAnchorTests.swift */; };
 		5A973AAE26B2FA3B006BC3E9 /* AudioAnchorUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A973AAD26B2FA3B006BC3E9 /* AudioAnchorUITests.swift */; };
-		5A973ABD26B2FA91006BC3E9 /* SimplyCoreAudio in Frameworks */ = {isa = PBXBuildFile; productRef = 5A973ABC26B2FA91006BC3E9 /* SimplyCoreAudio */; };
 		5A973AC026B3051D006BC3E9 /* LaunchAtLogin in Frameworks */ = {isa = PBXBuildFile; productRef = 5A973ABF26B3051D006BC3E9 /* LaunchAtLogin */; };
 /* End PBXBuildFile section */
 
@@ -38,6 +38,7 @@
 
 /* Begin PBXFileReference section */
 		5A76F84026E664CE0029486E /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
+		5AA1C0DE0000000000000003 /* AudioOutputDevice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioOutputDevice.swift; sourceTree = "<group>"; };
 		5A973A8E26B2FA37006BC3E9 /* AudioAnchor.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AudioAnchor.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5A973A9126B2FA37006BC3E9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		5A973A9326B2FA3A006BC3E9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -60,7 +61,6 @@
 			files = (
 				5A8787D626B827D70030D814 /* Sparkle in Frameworks */,
 				5A973AC026B3051D006BC3E9 /* LaunchAtLogin in Frameworks */,
-				5A973ABD26B2FA91006BC3E9 /* SimplyCoreAudio in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -106,6 +106,7 @@
 			children = (
 				5A973A9126B2FA37006BC3E9 /* AppDelegate.swift */,
 				5A76F84026E664CE0029486E /* Settings.swift */,
+				5AA1C0DE0000000000000003 /* AudioOutputDevice.swift */,
 				5A973A9326B2FA3A006BC3E9 /* Assets.xcassets */,
 				5AA1C0DE0000000000000001 /* AppIcon.icon */,
 				5A973A9526B2FA3A006BC3E9 /* MainMenu.xib */,
@@ -150,7 +151,6 @@
 			);
 			name = AudioAnchor;
 			packageProductDependencies = (
-				5A973ABC26B2FA91006BC3E9 /* SimplyCoreAudio */,
 				5A973ABF26B3051D006BC3E9 /* LaunchAtLogin */,
 				5A8787D526B827D70030D814 /* Sparkle */,
 			);
@@ -226,7 +226,6 @@
 			);
 			mainGroup = 5A973A8526B2FA37006BC3E9;
 			packageReferences = (
-				5A973ABB26B2FA91006BC3E9 /* XCRemoteSwiftPackageReference "SimplyCoreAudio" */,
 				5A973ABE26B3051D006BC3E9 /* XCRemoteSwiftPackageReference "LaunchAtLogin" */,
 				5A8787D426B827D70030D814 /* XCRemoteSwiftPackageReference "Sparkle" */,
 			);
@@ -274,6 +273,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				5A76F84126E664CE0029486E /* Settings.swift in Sources */,
+				5AA1C0DE0000000000000004 /* AudioOutputDevice.swift in Sources */,
 				5A973A9226B2FA37006BC3E9 /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -628,14 +628,6 @@
 				minimumVersion = 2.10.1;
 			};
 		};
-		5A973ABB26B2FA91006BC3E9 /* XCRemoteSwiftPackageReference "SimplyCoreAudio" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/rnine/SimplyCoreAudio";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 4.1.1;
-			};
-		};
 		5A973ABE26B3051D006BC3E9 /* XCRemoteSwiftPackageReference "LaunchAtLogin" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/sindresorhus/LaunchAtLogin";
@@ -651,11 +643,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 5A8787D426B827D70030D814 /* XCRemoteSwiftPackageReference "Sparkle" */;
 			productName = Sparkle;
-		};
-		5A973ABC26B2FA91006BC3E9 /* SimplyCoreAudio */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 5A973ABB26B2FA91006BC3E9 /* XCRemoteSwiftPackageReference "SimplyCoreAudio" */;
-			productName = SimplyCoreAudio;
 		};
 		5A973ABF26B3051D006BC3E9 /* LaunchAtLogin */ = {
 			isa = XCSwiftPackageProductDependency;

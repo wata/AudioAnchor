@@ -7,19 +7,17 @@
 
 import Cocoa
 import Sparkle
-import SimplyCoreAudio
 import LaunchAtLogin
 import IOBluetooth
 
 @main
 final class AppDelegate: NSObject, NSApplicationDelegate {
-    private let simply = SimplyCoreAudio()
     private let updaterController = SPUStandardUpdaterController(startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
-    private var deviceListObserver: NSObjectProtocol?
-    private var deviceObservers = [NSObjectProtocol]()
+    private var deviceListObservation: AudioPropertyObservation?
+    private var deviceObservations = [AudioPropertyObservation]()
     // 通知のたびに接続要求を重ねないよう、接続を試している機器を持っておく
     private var connectingDevice: IOBluetoothDevice?
-    private lazy var currentDevices = simply.allOutputDevices
+    private lazy var currentDevices = AudioOutputDevice.all
     private lazy var statusItem: NSStatusItem = {
         let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         let image = NSImage(named: "Icon")!
@@ -43,11 +41,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         setupDevice()
         setupDeviceNotifications()
-        deviceListObserver = NotificationCenter.default.addObserver(forName: .deviceListChanged,
-                                                                    object: nil,
-                                                                    queue: .main) { [weak self] _ in
+        deviceListObservation = AudioOutputDevice.observeDeviceList { [weak self] in
             guard let self else { return }
-            currentDevices = simply.allOutputDevices
+            currentDevices = AudioOutputDevice.all
             setupMenu()
             setupDevice()
             setupDeviceNotifications()
@@ -55,12 +51,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func stop() {
-        if let observer = deviceListObserver {
-            NotificationCenter.default.removeObserver(observer)
-            deviceListObserver = nil
-        }
-        deviceObservers.forEach { NotificationCenter.default.removeObserver($0) }
-        deviceObservers = []
+        deviceListObservation = nil
+        deviceObservations = []
     }
 
     private func setupMenu() {
@@ -98,20 +90,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             connectBluetoothDevice(named: anchoredDeviceName)
             return
         }
-        anchoredDevice.isDefaultOutputDevice = true
-        anchoredDevice.isDefaultSystemOutputDevice = true
+        anchoredDevice.setAsDefaultOutput()
     }
 
     /**
      ケースから出した AirPods が iPhone 側につながっていると、Mac の出力先に現れず固定できない。
-     ペアリング済みなら Mac から接続を要求し、出力先に現れた時点で deviceListChanged から固定する
+     ペアリング済みなら Mac から接続を要求し、出力先に現れた時点でデバイス一覧の変化を受けて固定する
      */
     private func connectBluetoothDevice(named name: String) {
         guard
             connectingDevice == nil,
             let device = (IOBluetoothDevice.pairedDevices() as? [IOBluetoothDevice])?.first(where: { $0.name == name }),
             !device.isConnected()
-        else { return }
+        else {
+            return
+        }
         // target を渡すと非同期になり、メインスレッドを止めない。結果は connectionComplete(_:status:) に届く
         guard device.openConnection(self) == kIOReturnSuccess else { return }
         connectingDevice = device
@@ -122,11 +115,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func setupDeviceNotifications() {
-        deviceObservers.forEach { NotificationCenter.default.removeObserver($0) }
         let anchoredDeviceName = Settings.anchoredDeviceName
-        deviceObservers = currentDevices.compactMap {
-            guard $0.name != anchoredDeviceName else { return nil }
-            return NotificationCenter.default.addObserver(forName: .deviceIsRunningSomewhereDidChange, object: $0, queue: .main) { [weak self] _ in
+        deviceObservations = currentDevices.compactMap {
+            guard $0.name != anchoredDeviceName else {
+                return nil
+            }
+            return $0.observeIsRunningSomewhere { [weak self] in
                 guard let self else { return }
                 setupDevice()
             }
@@ -141,7 +135,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func anchor(_ sender: NSMenuItem) {
         Settings.anchoredDeviceName = Settings.anchoredDeviceName == sender.title ? nil : sender.title
-        // メニューのチェック表示と、固定先以外を監視する deviceObservers を新しい固定先で作り直す
+        // メニューのチェック表示と、固定先以外を監視する deviceObservations を新しい固定先で作り直す
         start()
         guard Settings.isDisabled else { return }
         // Disable 中の start() は出力先を切り替えないが、メニューで選んだ出力先にはその場で切り替える
