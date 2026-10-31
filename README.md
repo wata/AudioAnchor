@@ -16,7 +16,7 @@ macOS 13 or later.
 
 ## Usage
 
-Download the latest pre-built application binary from Releases page. Note that these pre-built application binaries are not notarized, so you need to allow them to run in System Settings > Privacy & Security.
+Download the latest pre-built application binary from Releases page.
 
 If you are using 0.1.x, it will not update to 1.0.0 automatically. Please download 1.0.0 from Releases page manually.
 

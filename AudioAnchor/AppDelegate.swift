@@ -7,7 +7,6 @@
 
 import Cocoa
 import Sparkle
-import LaunchAtLogin
 import IOBluetooth
 
 @main
@@ -27,8 +26,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }()
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
-        // LaunchAtLogin 4 のヘルパー (SMLoginItemSetEnabled) で登録済みの設定を SMAppService に引き継ぐ。呼ばないと更新後に無効扱いになる
-        LaunchAtLogin.migrateIfNeeded()
+        // LaunchAtLogin パッケージ 4 以前のヘルパー (SMLoginItemSetEnabled) で登録済みの設定を SMAppService に引き継ぐ。呼ばないと更新後に無効扱いになる
+        Settings.migrateLaunchAtLoginIfNeeded()
         start()
     }
 

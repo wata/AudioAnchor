@@ -81,7 +81,9 @@ fi
 REPO="wata/AudioAnchor"
 PBXPROJ="AudioAnchor.xcodeproj/project.pbxproj"
 DERIVED_DATA="build/release"
-BUILT_APP="$DERIVED_DATA/Build/Products/Release/AudioAnchor.app"
+ARCHIVE="$DERIVED_DATA/AudioAnchor.xcarchive"
+EXPORT_DIR="$DERIVED_DATA/export"
+BUILT_APP="$EXPORT_DIR/AudioAnchor.app"
 SPARKLE_BIN="$DERIVED_DATA/SourcePackages/artifacts/sparkle/Sparkle/bin"
 # 0.1.x は旧鍵で署名した appcast.xml を見ているので、v1 以降は別ファイルに分けて旧版に署名エラーを出させない
 APPCAST="appcast-v1.xml"
@@ -105,6 +107,9 @@ fi
 # 過去の版の URL を今回の版の場所に書き換えないよう、リリースごとのディレクトリにする（既存の項目は appcast から引き継がれる）
 ARCHIVES_DIR="dist/v1/$TAG"
 ZIP="$ARCHIVES_DIR/AudioAnchor-$VERSION.zip"
+TEAM_ID="49JCDB9D59"
+# notarytool の認証情報（xcrun notarytool store-credentials で作るキーチェーンプロファイル）。AudioAnchor と TimeMachineEjector で共用している
+NOTARY_PROFILE="${NOTARY_PROFILE:-wata-notary}"
 # Sparkle の署名鍵のキーチェーンの account 名。TimeMachineEjector と共用している
 SPARKLE_ACCOUNT="AudioAnchor"
 
@@ -128,6 +133,12 @@ if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null || git ls-remote --exit
     fail "タグ $TAG は既にあります"
 fi
 [[ ! -e "$ZIP" ]] || fail "$ZIP が既にあります"
+# --no-publish でもノータライズまでするので、署名とノータライズの準備は常に確かめる
+CODESIGN_IDENTITIES="$(security find-identity -v -p codesigning)"
+[[ "$CODESIGN_IDENTITIES" == *"\"Developer ID Application: "*"($TEAM_ID)\""* ]] \
+    || fail "キーチェーンに Developer ID Application ($TEAM_ID) の署名 ID がありません"
+xcrun notarytool history --keychain-profile "$NOTARY_PROFILE" >/dev/null 2>&1 \
+    || fail "notarytool のプロファイル $NOTARY_PROFILE が使えません（xcrun notarytool store-credentials $NOTARY_PROFILE --apple-id <Apple ID> --team-id $TEAM_ID）"
 
 step "バージョンを $VERSION ($BUILD_NUMBER) に更新"
 sed -i '' \
@@ -135,14 +146,42 @@ sed -i '' \
     -e "s/CURRENT_PROJECT_VERSION = [^;]*;/CURRENT_PROJECT_VERSION = $BUILD_NUMBER;/" \
     "$PBXPROJ"
 
-step "Release ビルド"
+step "Release アーカイブ"
+# 前回の archive や書き出しが混ざらないよう消しておく
+rm -rf "$ARCHIVE" "$EXPORT_DIR"
 # -destination を付けないと実行中の Mac のアーキテクチャだけでビルドされ、Intel 機で動かない zip になる
-xcodebuild build \
+xcodebuild archive \
     -project AudioAnchor.xcodeproj \
     -scheme AudioAnchor \
     -configuration Release \
     -destination 'generic/platform=macOS' \
     -derivedDataPath "$DERIVED_DATA" \
+    -archivePath "$ARCHIVE" \
+    -quiet
+
+step "Developer ID で書き出し"
+# プロジェクトは Apple Development で署名するので、export で Sparkle の中の Autoupdate・Updater.app・XPC サービスまで Developer ID で署名し直す
+EXPORT_OPTIONS="$DERIVED_DATA/ExportOptions.plist"
+cat > "$EXPORT_OPTIONS" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>method</key>
+    <string>developer-id</string>
+    <key>teamID</key>
+    <string>$TEAM_ID</string>
+    <key>signingStyle</key>
+    <string>manual</string>
+    <key>signingCertificate</key>
+    <string>Developer ID Application</string>
+</dict>
+</plist>
+EOF
+xcodebuild -exportArchive \
+    -archivePath "$ARCHIVE" \
+    -exportPath "$EXPORT_DIR" \
+    -exportOptionsPlist "$EXPORT_OPTIONS" \
     -quiet
 
 BUILT_VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$BUILT_APP/Contents/Info.plist")"
@@ -152,7 +191,33 @@ if [[ "$BUILT_VERSION" != "$VERSION" || "$BUILT_BUILD" != "$BUILD_NUMBER" ]]; th
 fi
 BUILT_ARCHS="$(lipo -archs "$BUILT_APP/Contents/MacOS/AudioAnchor")"
 [[ "$BUILT_ARCHS" == *arm64* && "$BUILT_ARCHS" == *x86_64* ]] || fail "ユニバーサルバイナリになっていません: $BUILT_ARCHS"
+codesign --verify --deep --strict "$BUILT_APP" || fail "$BUILT_APP の署名が正しくありません"
+# パイプでつなぐと sed の q で codesign が SIGPIPE になり pipefail で落ちるので、先に変数へ受ける
+SIGNING_INFO="$(codesign -dvv "$BUILT_APP" 2>&1)"
+SIGNER="$(sed -n '/^Authority=/{s/^Authority=//p;q;}' <<<"$SIGNING_INFO")"
+[[ "$SIGNER" == "Developer ID Application: "*"($TEAM_ID)" ]] || fail "Developer ID で署名されていません: $SIGNER"
 
+step "ノータライズ"
+NOTARY_ZIP="$DERIVED_DATA/AudioAnchor-notarize.zip"
+rm -f "$NOTARY_ZIP"
+ditto -c -k --sequesterRsrc --keepParent "$BUILT_APP" "$NOTARY_ZIP"
+# notarytool は Invalid でも終了コード 0 を返すことがあるので、終了コードではなく結果の status で判定する
+NOTARY_RESULT="$(xcrun notarytool submit "$NOTARY_ZIP" --keychain-profile "$NOTARY_PROFILE" --wait --output-format json)" || true
+NOTARY_STATUS="$(plutil -extract status raw -o - - <<<"$NOTARY_RESULT" 2>/dev/null)" || true
+if [[ "$NOTARY_STATUS" != "Accepted" ]]; then
+    echo "$NOTARY_RESULT" >&2
+    SUBMISSION_ID="$(plutil -extract id raw -o - - <<<"$NOTARY_RESULT" 2>/dev/null)" || true
+    fail "ノータライズが通りませんでした（status: ${NOTARY_STATUS:-不明}, id: ${SUBMISSION_ID:-不明}）。詳細: xcrun notarytool log ${SUBMISSION_ID:-<id>} --keychain-profile $NOTARY_PROFILE"
+fi
+
+step "公証チケットを staple"
+# staple しておくと、初回起動時にオフラインでも Gatekeeper がノータライズ済みと判断できる
+xcrun stapler staple "$BUILT_APP"
+GATEKEEPER="$(spctl -a -t exec -vv "$BUILT_APP" 2>&1)" || fail "Gatekeeper に拒否されました: $GATEKEEPER"
+[[ "$GATEKEEPER" == *": accepted"* && "$GATEKEEPER" == *"source=Notarized Developer ID"* ]] \
+    || fail "Gatekeeper の判定がノータライズ済みの Developer ID になっていません: $GATEKEEPER"
+
+# generate_appcast が署名するのはこの zip なので、必ず staple 後の .app から作る
 step "$ZIP を作成"
 mkdir -p "$ARCHIVES_DIR"
 ditto -c -k --sequesterRsrc --keepParent "$BUILT_APP" "$ZIP"
