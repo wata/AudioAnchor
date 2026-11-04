@@ -3,6 +3,17 @@
     <channel>
         <title>AudioAnchor</title>
         <item>
+            <title>1.0.2</title>
+            <pubDate>Wed, 04 Nov 2026 10:49:33 +0900</pubDate>
+            <sparkle:version>8</sparkle:version>
+            <sparkle:shortVersionString>1.0.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[- When your anchored AirPods are connected but their audio is on another device (such as your iPhone) while the Mac is playing sound, the menu bar icon now shows a warning badge and the menu tells you to select them in Control Center > Sound.
+- AudioAnchor now finds renamed AirPods by the name you gave them, so it can ask them to connect to the Mac again.
+]]></description>
+            <enclosure url="https://github.com/wata/AudioAnchor/releases/download/1.0.2/AudioAnchor-1.0.2.zip" length="3667066" type="application/octet-stream" sparkle:edSignature="hbJ3GkLsflG+HboGDCQJauo5ep+iQgaYEnB+J+CKXqZVWq9BPPz3snpylBn3H02UYG28AOeF7XXPq7EcsK4ODg=="/>
+        </item>
+        <item>
             <title>1.0.1</title>
             <pubDate>Sun, 01 Nov 2026 01:58:55 +0900</pubDate>
             <sparkle:version>7</sparkle:version>
