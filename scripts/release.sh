@@ -112,6 +112,8 @@ TEAM_ID="49JCDB9D59"
 NOTARY_PROFILE="${NOTARY_PROFILE:-wata-notary}"
 # Sparkle の署名鍵のキーチェーンの account 名。TimeMachineEjector と共用している
 SPARKLE_ACCOUNT="AudioAnchor"
+# Homebrew cask（wata/homebrew-tap）。brew tap 済みのリポジトリを使う（HOMEBREW_TAP_DIR で上書きできる）
+CASK_FILE="Casks/audioanchor.rb"
 
 step() {
     echo -e "${BLUE}==> $1${NC}"
@@ -139,6 +141,18 @@ CODESIGN_IDENTITIES="$(security find-identity -v -p codesigning)"
     || fail "キーチェーンに Developer ID Application ($TEAM_ID) の署名 ID がありません"
 xcrun notarytool history --keychain-profile "$NOTARY_PROFILE" >/dev/null 2>&1 \
     || fail "notarytool のプロファイル $NOTARY_PROFILE が使えません（xcrun notarytool store-credentials $NOTARY_PROFILE --apple-id <Apple ID> --team-id $TEAM_ID）"
+
+# cask の url は #{version} をタグに使うので、ビルド番号付きのタグ（同じ版の作り直し）では更新しない
+UPDATE_CASK=false
+if [[ "$PUBLISH" == true && "$TAG" == "$VERSION" ]]; then
+    UPDATE_CASK=true
+    TAP_DIR="${HOMEBREW_TAP_DIR:-$(brew --repository wata/tap 2>/dev/null)}"
+    [[ -f "$TAP_DIR/$CASK_FILE" ]] || fail "Homebrew tap に $CASK_FILE がありません（brew tap wata/tap するか HOMEBREW_TAP_DIR を指定）: $TAP_DIR"
+    [[ "$(git -C "$TAP_DIR" branch --show-current)" == "main" ]] || fail "$TAP_DIR が main ブランチではありません"
+    git -C "$TAP_DIR" fetch --quiet origin
+    git -C "$TAP_DIR" diff --quiet HEAD -- "$CASK_FILE" || fail "$TAP_DIR/$CASK_FILE に未コミットの変更があります"
+    [[ "$(git -C "$TAP_DIR" rev-parse HEAD)" == "$(git -C "$TAP_DIR" rev-parse origin/main)" ]] || fail "$TAP_DIR の main が origin/main と一致していません"
+fi
 
 step "バージョンを $VERSION ($BUILD_NUMBER) に更新"
 sed -i '' \
@@ -262,6 +276,22 @@ if [[ -n "$NOTES" ]]; then
     gh release create "$TAG" "$ZIP" --repo "$REPO" --title "$TITLE" --notes-file "$NOTES"
 else
     gh release create "$TAG" "$ZIP" --repo "$REPO" --title "$TITLE" --generate-notes
+fi
+
+if [[ "$UPDATE_CASK" == true ]]; then
+    step "Homebrew cask を $VERSION に更新"
+    CASK_SHA256="$(shasum -a 256 "$ZIP" | cut -d ' ' -f 1)"
+    sed -i '' \
+        -e "s/^  version \"[^\"]*\"$/  version \"$VERSION\"/" \
+        -e "s/^  sha256 \"[^\"]*\"$/  sha256 \"$CASK_SHA256\"/" \
+        "$TAP_DIR/$CASK_FILE"
+    grep -q "^  version \"$VERSION\"$" "$TAP_DIR/$CASK_FILE" && grep -q "^  sha256 \"$CASK_SHA256\"$" "$TAP_DIR/$CASK_FILE" \
+        || fail "$TAP_DIR/$CASK_FILE の version / sha256 を書き換えられませんでした（リリースは公開済み。cask は手で更新してください）"
+    git -C "$TAP_DIR" add "$CASK_FILE"
+    git -C "$TAP_DIR" commit -m "Update $(basename "$CASK_FILE" .rb) to $VERSION"
+    git -C "$TAP_DIR" push origin main
+else
+    echo -e "${YELLOW}タグ $TAG はビルド番号付きなので Homebrew cask は更新しません${NC}"
 fi
 
 echo -e "${GREEN}リリース完了: https://github.com/$REPO/releases/tag/$TAG${NC}"
