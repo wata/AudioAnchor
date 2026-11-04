@@ -30,6 +30,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return image
     }()
     private lazy var badgedIcon = icon.badged()
+    private weak var warningItem: NSMenuItem?
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // LaunchAtLogin パッケージ 4 以前のヘルパー (SMLoginItemSetEnabled) で登録済みの設定を SMAppService に引き継ぐ。呼ばないと更新後に無効扱いになる
@@ -69,9 +70,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     /**
-     Bluetooth では Mac につながっているのに Core Audio の出力先に現れないときは、音声の経路を他の機器が持っている。
-     この状態でも Mac で再生を始めれば macOS が AirPods を切り替えてくることが多いので、待機中は警告しない。
-     他の出力先で音が出ているのに固定できないときだけ、公開 API では経路を取り戻せないためユーザーに知らせる
+     Bluetooth では Mac につながっているのに Core Audio の出力先に現れないときは、iPhone などに AirPods を奪われている。
+     Mac が音声を使っていなければ、Mac で再生を始めたときに macOS が AirPods を取り戻すので警告しない。
+     他の出力先を使っているアプリがあると macOS は取り戻しを飛ばし (ログの "PredictiveRoute: Skip, Mac is not idle")、
+     公開 API では経路を取り戻せないため、ユーザーに知らせる
      */
     private var isAnchoredDeviceUnavailable: Bool {
         guard
@@ -104,7 +106,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             let anchoredDeviceName
         {
             // 出力先の行と同じ見た目にすると使えるように見えてしまうため、固定先は行にせず説明の中で名前を出す
-            menu.addItem(makeMenuItem(title: "⚠️ \(anchoredDeviceName) is unavailable. Select it in Control Center > Sound.", selector: nil))
+            let item = makeMenuItem(title: "", selector: nil)
+            updateWarning(item, anchoredDeviceName: anchoredDeviceName)
+            menu.addItem(item)
+            warningItem = item
         }
         menu.addItem(.separator())
         menu.addItem(makeMenuItem(title: "Check for Updates...", selector: #selector(SPUStandardUpdaterController.checkForUpdates(_:)), target: updaterController))
@@ -112,9 +117,30 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(makeMenuItem(title: "Launch at Login", selector: #selector(AppDelegate.toggleLaunchAtLogin(_:)), isOn: Settings.isLaunchAtLoginEnabled))
         menu.addItem(makeMenuItem(title: "About \(name) \(version)", selector: #selector(AppDelegate.openGitHub(_:))))
         menu.addItem(makeMenuItem(title: "Quit", selector: #selector(AppDelegate.quit(_:))))
+        menu.delegate = self
         statusItem.menu = menu
         // メニューを開かなくても気づけるよう、固定先が使えない間はアイコンにバッジを付ける
         statusItem.button?.image = isUnavailable ? badgedIcon : icon
+    }
+
+    /**
+     音を出していないアプリでも出力を開いていれば macOS は AirPods を取り戻さないため、そのアプリを名指しして閉じる手がかりにする。
+     メニューの幅を広げないよう、行には原因だけを出し、操作方法はツールチップに回す。
+     ヘルパープロセスなどで同じ名前が並ばないよう、重複は除く。
+     通知音を鳴らす systemsoundserverd など root のプロセスは名前を取れず、鳴らすのも一瞬なので除く
+     */
+    private func updateWarning(_ item: NSMenuItem, anchoredDeviceName: String) {
+        var names = [String]()
+        for name in AudioProcess.runningOutput.map(\.name) where !name.isEmpty && !names.contains(name) {
+            names.append(name)
+        }
+        if names.isEmpty {
+            item.title = "⚠️ \(anchoredDeviceName) is unavailable"
+            item.toolTip = "Select \(anchoredDeviceName) in Control Center > Sound."
+        } else {
+            item.title = "⚠️ \(names.joined(separator: ", ")) is blocking \(anchoredDeviceName)"
+            item.toolTip = "Quit it or select \(anchoredDeviceName) in Control Center > Sound."
+        }
     }
 
     private func makeMenuItem(title: String, selector: Selector?, target: AnyObject? = nil, isOn: Bool? = nil) -> NSMenuItem {
@@ -224,6 +250,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func quit(_ sender: NSMenuItem) {
         NSApplication.shared.terminate(self)
+    }
+}
+
+extension AppDelegate: NSMenuDelegate {
+    /// 出力デバイスを使うアプリが入れ替わっても使用中のままなら setupMenu() は呼ばれないため、開くたびに警告のアプリ名を取り直す
+    func menuNeedsUpdate(_ menu: NSMenu) {
+        guard
+            let warningItem,
+            let anchoredDeviceName = Settings.anchoredDeviceName
+        else {
+            return
+        }
+        updateWarning(warningItem, anchoredDeviceName: anchoredDeviceName)
     }
 }
 
