@@ -32,3 +32,6 @@ DerivedData/
 
 # Archive
 dist/
+
+# Local notes
+tasks/
