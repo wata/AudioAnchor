@@ -3,6 +3,17 @@
     <channel>
         <title>AudioAnchor</title>
         <item>
+            <title>1.0.3</title>
+            <pubDate>Wed, 04 Nov 2026 16:33:41 +0900</pubDate>
+            <sparkle:version>9</sparkle:version>
+            <sparkle:shortVersionString>1.0.3</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[- When your anchored AirPods can't switch back to the Mac because another app is holding the Mac's audio output (such as the Android Emulator), the warning now names that app. Quit it or select your AirPods in Control Center > Sound.
+- The warning is shorter so the menu no longer gets wide. Hover over it to see what to do.
+]]></description>
+            <enclosure url="https://github.com/wata/AudioAnchor/releases/download/1.0.3/AudioAnchor-1.0.3.zip" length="3671686" type="application/octet-stream" sparkle:edSignature="p81jKz7opLcu7VtV9TgEiggLxST+2B8SOE4/5Q+cE9gMT4GNofZQI0uXFqtnUl18fwd3kSbu9SMi0tZk0hU0Aw=="/>
+        </item>
+        <item>
             <title>1.0.2</title>
             <pubDate>Wed, 04 Nov 2026 10:49:33 +0900</pubDate>
             <sparkle:version>8</sparkle:version>
