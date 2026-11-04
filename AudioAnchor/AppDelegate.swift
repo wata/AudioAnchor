@@ -16,14 +16,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var deviceObservations = [AudioPropertyObservation]()
     // 通知のたびに接続要求を重ねないよう、接続を試している機器を持っておく
     private var connectingDevice: IOBluetoothDevice?
-    private lazy var currentDevices = AudioOutputDevice.all
-    private lazy var statusItem: NSStatusItem = {
-        let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+    /**
+     AirPods の自動切り替えで iPhone に音声を取られている間も Bluetooth 接続は残り、Core Audio のデバイス一覧は変化しない。
+     固定先が使えない状態の表示を更新するため、Bluetooth の接続・切断を監視する
+     */
+    private var bluetoothConnectNotification: IOBluetoothUserNotification?
+    private var bluetoothDisconnectNotifications = [IOBluetoothUserNotification]()
+    private var currentDevices = [AudioOutputDevice]()
+    private lazy var statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+    private lazy var icon: NSImage = {
         let image = NSImage(named: "Icon")!
-        image.size = .init(width: 17, height: 17)
-        statusItem.button?.image = image
-        return statusItem
+        image.size = StatusIcon.size
+        return image
     }()
+    private lazy var badgedIcon = icon.badged()
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // LaunchAtLogin パッケージ 4 以前のヘルパー (SMLoginItemSetEnabled) で登録済みの設定を SMAppService に引き継ぐ。呼ばないと更新後に無効扱いになる
@@ -34,6 +40,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func start() {
         stop()
 
+        // Disable 中はデバイス一覧の変化を監視していないため、始めるたびに取り直す
+        currentDevices = AudioOutputDevice.all
         setupMenu()
 
         guard !Settings.isDisabled else { return }
@@ -47,11 +55,36 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             setupDevice()
             setupDeviceNotifications()
         }
+        bluetoothConnectNotification = IOBluetoothDevice.register(forConnectNotifications: self, selector: #selector(bluetoothDeviceConnected(_:device:)))
     }
 
     private func stop() {
         deviceListObservation = nil
         deviceObservations = []
+        // IOBluetoothUserNotification は解放しても解除されないため、明示的に解除する
+        bluetoothConnectNotification?.unregister()
+        bluetoothConnectNotification = nil
+        bluetoothDisconnectNotifications.forEach { $0.unregister() }
+        bluetoothDisconnectNotifications = []
+    }
+
+    /**
+     Bluetooth では Mac につながっているのに Core Audio の出力先に現れないときは、音声の経路を他の機器が持っている。
+     この状態でも Mac で再生を始めれば macOS が AirPods を切り替えてくることが多いので、待機中は警告しない。
+     他の出力先で音が出ているのに固定できないときだけ、公開 API では経路を取り戻せないためユーザーに知らせる
+     */
+    private var isAnchoredDeviceUnavailable: Bool {
+        guard
+            !Settings.isDisabled,
+            let anchoredDeviceName = Settings.anchoredDeviceName,
+            !currentDevices.contains(where: { $0.name == anchoredDeviceName }),
+            currentDevices.contains(where: { $0.isRunningSomewhere })
+        else {
+            return false
+        }
+        // 同じ名前のペアリング済み機器が複数あることがあるため、どれか1つでも接続していれば対象とみなす
+        let devices = IOBluetoothDevice.pairedDevices() as? [IOBluetoothDevice] ?? []
+        return devices.contains { $0.displayName == anchoredDeviceName && $0.isConnected() }
     }
 
     private func setupMenu() {
@@ -65,6 +98,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         currentDevices.forEach {
             menu.addItem(makeMenuItem(title: $0.name, selector: #selector(AppDelegate.anchor(_:)), isOn: $0.name == anchoredDeviceName))
         }
+        let isUnavailable = isAnchoredDeviceUnavailable
+        if
+            isUnavailable,
+            let anchoredDeviceName
+        {
+            // 出力先の行と同じ見た目にすると使えるように見えてしまうため、固定先は行にせず説明の中で名前を出す
+            menu.addItem(makeMenuItem(title: "⚠️ \(anchoredDeviceName) is unavailable. Select it in Control Center > Sound.", selector: nil))
+        }
         menu.addItem(.separator())
         menu.addItem(makeMenuItem(title: "Check for Updates...", selector: #selector(SPUStandardUpdaterController.checkForUpdates(_:)), target: updaterController))
         menu.addItem(.separator())
@@ -72,6 +113,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(makeMenuItem(title: "About \(name) \(version)", selector: #selector(AppDelegate.openGitHub(_:))))
         menu.addItem(makeMenuItem(title: "Quit", selector: #selector(AppDelegate.quit(_:))))
         statusItem.menu = menu
+        // メニューを開かなくても気づけるよう、固定先が使えない間はアイコンにバッジを付ける
+        statusItem.button?.image = isUnavailable ? badgedIcon : icon
     }
 
     private func makeMenuItem(title: String, selector: Selector?, target: AnyObject? = nil, isOn: Bool? = nil) -> NSMenuItem {
@@ -99,7 +142,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func connectBluetoothDevice(named name: String) {
         guard
             connectingDevice == nil,
-            let device = (IOBluetoothDevice.pairedDevices() as? [IOBluetoothDevice])?.first(where: { $0.name == name }),
+            let device = (IOBluetoothDevice.pairedDevices() as? [IOBluetoothDevice])?.first(where: { $0.displayName == name }),
             !device.isConnected()
         else {
             return
@@ -113,6 +156,33 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         connectingDevice = nil
     }
 
+    /**
+     切断通知は機器ごとにしか登録できないため、接続を受けるたびに登録する。
+     登録時点で接続済みの機器の通知はメインスレッドに届くが、その後の接続は IOBluetooth 内部のキューから届き、
+     そのままメニューを更新するとクラッシュするため、メインスレッドに移してから処理する
+     */
+    @objc private func bluetoothDeviceConnected(_ notification: IOBluetoothUserNotification, device: IOBluetoothDevice) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            if let disconnectNotification = device.register(forDisconnectNotification: self, selector: #selector(bluetoothDeviceDisconnected(_:device:))) {
+                bluetoothDisconnectNotifications.append(disconnectNotification)
+            }
+            setupMenu()
+            setupDevice()
+        }
+    }
+
+    // 接続通知と同じく、IOBluetooth 内部のキューから届くことがあるため、メインスレッドに移す
+    @objc private func bluetoothDeviceDisconnected(_ notification: IOBluetoothUserNotification, device: IOBluetoothDevice) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            notification.unregister()
+            bluetoothDisconnectNotifications.removeAll { $0 === notification }
+            setupMenu()
+            setupDevice()
+        }
+    }
+
     private func setupDeviceNotifications() {
         let anchoredDeviceName = Settings.anchoredDeviceName
         deviceObservations = currentDevices.compactMap {
@@ -121,6 +191,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
             return $0.observeIsRunningSomewhere { [weak self] in
                 guard let self else { return }
+                // 再生の開始・停止で警告の表示も変わるため、メニューとアイコンも作り直す
+                setupMenu()
                 setupDevice()
             }
         }
@@ -128,8 +200,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func toggleDisable(_ sender: NSMenuItem) {
         Settings.isDisabled.toggle()
-        Settings.isDisabled ? stop() : start()
-        sender.state = Settings.isDisabled ? .on : .off
+        // Disable 中の start() は監視を止めてメニューを作り直すだけなので、チェック表示とアイコンのバッジも揃う
+        start()
     }
 
     @objc private func anchor(_ sender: NSMenuItem) {
@@ -152,5 +224,51 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func quit(_ sender: NSMenuItem) {
         NSApplication.shared.terminate(self)
+    }
+}
+
+private enum StatusIcon {
+    static let size = NSSize(width: 17, height: 17)
+    static let badgePointSize: CGFloat = 8
+    static let badgeCutoutWidth: CGFloat = 1.5
+}
+
+private extension NSImage {
+    /**
+     メニューバーの明暗に合わせて色が変わるよう、バッジ付きでも template のまま保つ。
+     バッジの周りを切り抜くのは、錨の線と重なってもバッジの形が読めるようにするため
+     */
+    func badged() -> NSImage {
+        let badge = NSImage(systemSymbolName: "exclamationmark.triangle.fill", accessibilityDescription: nil)!
+            .withSymbolConfiguration(.init(pointSize: StatusIcon.badgePointSize, weight: .bold))!
+        let image = NSImage(size: size, flipped: false) { [self] rect in
+            draw(in: rect)
+            let badgeRect = NSRect(
+                x: rect.maxX - badge.size.width,
+                y: rect.minY,
+                width: badge.size.width,
+                height: badge.size.height
+            )
+            let cutoutRect = badgeRect.insetBy(dx: -StatusIcon.badgeCutoutWidth, dy: -StatusIcon.badgeCutoutWidth)
+            badge.draw(in: cutoutRect, from: .zero, operation: .destinationOut, fraction: 1)
+            badge.draw(in: badgeRect)
+            return true
+        }
+        image.isTemplate = true
+        return image
+    }
+}
+
+private extension IOBluetoothDevice {
+    /**
+     name は工場出荷時の名前 ("AirPods Pro" など) を返し、Core Audio が使うユーザー設定の名前と一致しない。
+     ユーザー設定の名前を返す getDisplayName は非公開 API のため、使えないときは name に戻す
+     */
+    var displayName: String? {
+        let selector = NSSelectorFromString("getDisplayName")
+        guard responds(to: selector) else {
+            return name
+        }
+        return perform(selector)?.takeUnretainedValue() as? String ?? name
     }
 }

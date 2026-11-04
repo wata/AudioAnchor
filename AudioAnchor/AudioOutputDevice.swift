@@ -36,6 +36,16 @@ struct AudioOutputDevice {
         return name.takeRetainedValue() as String
     }
 
+    var isRunningSomewhere: Bool {
+        var address = AudioObjectPropertyAddress(selector: kAudioDevicePropertyDeviceIsRunningSomewhere)
+        var isRunning: UInt32 = 0
+        var size = UInt32(MemoryLayout<UInt32>.size)
+        guard AudioObjectGetPropertyData(id, &address, 0, nil, &size, &isRunning) == noErr else {
+            return false
+        }
+        return isRunning != 0
+    }
+
     private var outputChannelCount: Int {
         var address = AudioObjectPropertyAddress(selector: kAudioDevicePropertyStreamConfiguration, scope: kAudioObjectPropertyScopeOutput)
         var size: UInt32 = 0
