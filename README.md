@@ -27,6 +27,12 @@ macOS 13 or later.
 
 Download the latest pre-built application binary from Releases page and move it to `/Applications`. AudioAnchor checks for updates automatically, and you can also choose Check for Updates... from its menu.
 
+Or install it with [Homebrew](https://brew.sh):
+
+```sh
+brew install --cask wata/tap/audioanchor
+```
+
 Click the anchor icon in the menu bar and choose a device under Output. Choose it again to stop anchoring. Devices are matched by name. To be reconnected automatically, a Bluetooth device must already be paired with your Mac. macOS may ask for Bluetooth access the first time.
 
 AudioAnchor only sets the system-wide default output. It does not route individual apps to different devices.
