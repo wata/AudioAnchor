@@ -3,6 +3,16 @@
     <channel>
         <title>AudioAnchor</title>
         <item>
+            <title>1.1.0</title>
+            <pubDate>Mon, 16 Nov 2026 22:38:29 +0900</pubDate>
+            <sparkle:version>10</sparkle:version>
+            <sparkle:shortVersionString>1.1.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[- You can now anchor the input device too. Choose a microphone under the new Input section in the menu, and AudioAnchor switches back to it when the list of devices changes, for example after a USB or webcam mic is plugged back in, or when AirPods connect.
+]]></description>
+            <enclosure url="https://github.com/wata/AudioAnchor/releases/download/1.1.0/AudioAnchor-1.1.0.zip" length="3680206" type="application/octet-stream" sparkle:edSignature="78hjbkBA6c2E31uu+JdTVTs2Fs+HapXK4EN8KT68Fz0iL4s+xkduJlXy9xxzE2qLNOTlPysLGDTpjXBmQBWtCw=="/>
+        </item>
+        <item>
             <title>1.0.3</title>
             <pubDate>Wed, 04 Nov 2026 16:33:41 +0900</pubDate>
             <sparkle:version>9</sparkle:version>
