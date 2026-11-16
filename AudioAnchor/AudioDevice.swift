@@ -1,5 +1,5 @@
 //
-//  AudioOutputDevice.swift
+//  AudioDevice.swift
 //  AudioAnchor
 //
 
@@ -7,14 +7,41 @@ import AppKit
 import CoreAudio
 import os
 
-struct AudioOutputDevice {
+enum AudioDirection: CaseIterable {
+    case output
+    case input
+
+    var title: String {
+        switch self {
+        case .output: "Output"
+        case .input: "Input"
+        }
+    }
+
+    fileprivate var scope: AudioObjectPropertyScope {
+        switch self {
+        case .output: kAudioObjectPropertyScopeOutput
+        case .input: kAudioObjectPropertyScopeInput
+        }
+    }
+
+    /// 通知音などのシステム出力も同じデバイスに揃えるため、出力では両方を切り替える
+    fileprivate var defaultDeviceSelectors: [AudioObjectPropertySelector] {
+        switch self {
+        case .output: [kAudioHardwarePropertyDefaultOutputDevice, kAudioHardwarePropertyDefaultSystemOutputDevice]
+        case .input: [kAudioHardwarePropertyDefaultInputDevice]
+        }
+    }
+}
+
+struct AudioDevice {
     let id: AudioObjectID
 
-    /// 入力専用のデバイスはメニューに出さないよう、出力チャンネルを持つものだけに絞る
-    static var all: [AudioOutputDevice] {
+    /// 入力専用のマイクを出力の一覧に出さないよう (逆も同じ)、その向きのチャンネルを持つものだけに絞る
+    static func all(_ direction: AudioDirection) -> [AudioDevice] {
         AudioObjectID.system.objectIDs(for: kAudioHardwarePropertyDevices)
-            .map(AudioOutputDevice.init)
-            .filter { $0.outputChannelCount > 0 }
+            .map(AudioDevice.init)
+            .filter { $0.channelCount(direction) > 0 }
     }
 
     var name: String {
@@ -34,8 +61,8 @@ struct AudioOutputDevice {
         id.flag(for: kAudioDevicePropertyDeviceIsRunningSomewhere)
     }
 
-    private var outputChannelCount: Int {
-        var address = AudioObjectPropertyAddress(selector: kAudioDevicePropertyStreamConfiguration, scope: kAudioObjectPropertyScopeOutput)
+    private func channelCount(_ direction: AudioDirection) -> Int {
+        var address = AudioObjectPropertyAddress(selector: kAudioDevicePropertyStreamConfiguration, scope: direction.scope)
         var size: UInt32 = 0
         guard
             AudioObjectGetPropertyDataSize(id, &address, 0, nil, &size) == noErr,
@@ -52,14 +79,13 @@ struct AudioOutputDevice {
         return buffers.reduce(0) { $0 + Int($1.mNumberChannels) }
     }
 
-    /// 通知音などのシステム出力も同じデバイスに揃えるため、両方を切り替える
-    func setAsDefaultOutput() {
-        for selector in [kAudioHardwarePropertyDefaultOutputDevice, kAudioHardwarePropertyDefaultSystemOutputDevice] {
+    func setAsDefault(_ direction: AudioDirection) {
+        for selector in direction.defaultDeviceSelectors {
             var address = AudioObjectPropertyAddress(selector: selector)
             var id = id
             let status = AudioObjectSetPropertyData(.system, &address, 0, nil, UInt32(MemoryLayout<AudioObjectID>.size), &id)
             if status != noErr {
-                Logger.app.error("Failed to set default output device: \(status, privacy: .public)")
+                Logger.app.error("Failed to set default \(direction.title, privacy: .public) device: \(status, privacy: .public)")
             }
         }
     }

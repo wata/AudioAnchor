@@ -22,7 +22,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
      */
     private var bluetoothConnectNotification: IOBluetoothUserNotification?
     private var bluetoothDisconnectNotifications = [IOBluetoothUserNotification]()
-    private var currentDevices = [AudioOutputDevice]()
+    private var currentDevices = [AudioDirection: [AudioDevice]]()
     private lazy var statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     private lazy var icon: NSImage = {
         let image = NSImage(named: "Icon")!
@@ -42,21 +42,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         stop()
 
         // Disable 中はデバイス一覧の変化を監視していないため、始めるたびに取り直す
-        currentDevices = AudioOutputDevice.all
+        loadDevices()
         setupMenu()
 
         guard !Settings.isDisabled else { return }
 
         setupDevice()
         setupDeviceNotifications()
-        deviceListObservation = AudioOutputDevice.observeDeviceList { [weak self] in
+        deviceListObservation = AudioDevice.observeDeviceList { [weak self] in
             guard let self else { return }
-            currentDevices = AudioOutputDevice.all
+            loadDevices()
             setupMenu()
             setupDevice()
             setupDeviceNotifications()
         }
         bluetoothConnectNotification = IOBluetoothDevice.register(forConnectNotifications: self, selector: #selector(bluetoothDeviceConnected(_:device:)))
+    }
+
+    private func loadDevices() {
+        for direction in AudioDirection.allCases {
+            currentDevices[direction] = AudioDevice.all(direction)
+        }
     }
 
     private func stop() {
@@ -73,14 +79,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
      Bluetooth では Mac につながっているのに Core Audio の出力先に現れないときは、iPhone などに AirPods を奪われている。
      Mac が音声を使っていなければ、Mac で再生を始めたときに macOS が AirPods を取り戻すので警告しない。
      他の出力先を使っているアプリがあると macOS は取り戻しを飛ばし (ログの "PredictiveRoute: Skip, Mac is not idle")、
-     公開 API では経路を取り戻せないため、ユーザーに知らせる
+     公開 API では経路を取り戻せないため、ユーザーに知らせる。
+     奪われて困るのは再生なので、出力の固定先だけを見る
      */
     private var isAnchoredDeviceUnavailable: Bool {
+        let outputDevices = currentDevices[.output] ?? []
         guard
             !Settings.isDisabled,
-            let anchoredDeviceName = Settings.anchoredDeviceName,
-            !currentDevices.contains(where: { $0.name == anchoredDeviceName }),
-            currentDevices.contains(where: { $0.isRunningSomewhere })
+            let anchoredDeviceName = Settings.anchoredDeviceName(for: .output),
+            !outputDevices.contains(where: { $0.name == anchoredDeviceName }),
+            outputDevices.contains(where: { $0.isRunningSomewhere })
         else {
             return false
         }
@@ -95,23 +103,29 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""
         menu.addItem(makeMenuItem(title: "Disable", selector: #selector(AppDelegate.toggleDisable(_:)), isOn: Settings.isDisabled))
         menu.addItem(.separator())
-        menu.addItem(makeMenuItem(title: "Output", selector: nil))
-        let anchoredDeviceName = Settings.anchoredDeviceName
-        currentDevices.forEach {
-            menu.addItem(makeMenuItem(title: $0.name, selector: #selector(AppDelegate.anchor(_:)), isOn: $0.name == anchoredDeviceName))
-        }
         let isUnavailable = isAnchoredDeviceUnavailable
-        if
-            isUnavailable,
-            let anchoredDeviceName
-        {
-            // 出力先の行と同じ見た目にすると使えるように見えてしまうため、固定先は行にせず説明の中で名前を出す
-            let item = makeMenuItem(title: "", selector: nil)
-            updateWarning(item, anchoredDeviceName: anchoredDeviceName)
-            menu.addItem(item)
-            warningItem = item
+        for direction in AudioDirection.allCases {
+            menu.addItem(makeMenuItem(title: direction.title, selector: nil))
+            let anchoredDeviceName = Settings.anchoredDeviceName(for: direction)
+            for device in currentDevices[direction] ?? [] {
+                let item = makeMenuItem(title: device.name, selector: #selector(AppDelegate.anchor(_:)), isOn: device.name == anchoredDeviceName)
+                // 入出力の両方を持つデバイスは両方の一覧に同じ名前で並ぶため、どちらの行かを持たせる
+                item.representedObject = direction
+                menu.addItem(item)
+            }
+            if
+                direction == .output,
+                isUnavailable,
+                let anchoredDeviceName
+            {
+                // 出力先の行と同じ見た目にすると使えるように見えてしまうため、固定先は行にせず説明の中で名前を出す
+                let item = makeMenuItem(title: "", selector: nil)
+                updateWarning(item, anchoredDeviceName: anchoredDeviceName)
+                menu.addItem(item)
+                warningItem = item
+            }
+            menu.addItem(.separator())
         }
-        menu.addItem(.separator())
         menu.addItem(makeMenuItem(title: "Check for Updates...", selector: #selector(SPUStandardUpdaterController.checkForUpdates(_:)), target: updaterController))
         menu.addItem(.separator())
         menu.addItem(makeMenuItem(title: "Launch at Login", selector: #selector(AppDelegate.toggleLaunchAtLogin(_:)), isOn: Settings.isLaunchAtLoginEnabled))
@@ -152,18 +166,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return item
     }
 
-    private func setupDevice() {
-        guard let anchoredDeviceName = Settings.anchoredDeviceName else { return }
-        guard let anchoredDevice = currentDevices.first(where: { $0.name == anchoredDeviceName }) else {
-            connectBluetoothDevice(named: anchoredDeviceName)
-            return
+    private func setupDevice(_ directions: [AudioDirection] = AudioDirection.allCases) {
+        for direction in directions {
+            guard let anchoredDeviceName = Settings.anchoredDeviceName(for: direction) else { continue }
+            if let anchoredDevice = currentDevices[direction]?.first(where: { $0.name == anchoredDeviceName }) {
+                anchoredDevice.setAsDefault(direction)
+            } else {
+                connectBluetoothDevice(named: anchoredDeviceName)
+            }
         }
-        anchoredDevice.setAsDefaultOutput()
     }
 
     /**
-     ケースから出した AirPods が iPhone 側につながっていると、Mac の出力先に現れず固定できない。
-     ペアリング済みなら Mac から接続を要求し、出力先に現れた時点でデバイス一覧の変化を受けて固定する
+     ケースから出した AirPods が iPhone 側につながっていると、Mac のデバイス一覧に現れず固定できない。
+     ペアリング済みなら Mac から接続を要求し、一覧に現れた時点でデバイス一覧の変化を受けて固定する
      */
     private func connectBluetoothDevice(named name: String) {
         guard
@@ -210,8 +226,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func setupDeviceNotifications() {
-        let anchoredDeviceName = Settings.anchoredDeviceName
-        deviceObservations = currentDevices.compactMap {
+        let anchoredDeviceName = Settings.anchoredDeviceName(for: .output)
+        deviceObservations = (currentDevices[.output] ?? []).compactMap {
             guard $0.name != anchoredDeviceName else {
                 return nil
             }
@@ -231,12 +247,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc private func anchor(_ sender: NSMenuItem) {
-        Settings.anchoredDeviceName = Settings.anchoredDeviceName == sender.title ? nil : sender.title
+        guard let direction = sender.representedObject as? AudioDirection else { return }
+        let isAnchored = Settings.anchoredDeviceName(for: direction) == sender.title
+        Settings.setAnchoredDeviceName(isAnchored ? nil : sender.title, for: direction)
         // メニューのチェック表示と、固定先以外を監視する deviceObservations を新しい固定先で作り直す
         start()
         guard Settings.isDisabled else { return }
-        // Disable 中の start() は出力先を切り替えないが、メニューで選んだ出力先にはその場で切り替える
-        setupDevice()
+        /**
+         Disable 中の start() はデバイスを切り替えないが、メニューで選んだデバイスにはその場で切り替える。
+         選んでいない向きまで固定先に戻さないよう、選んだ向きだけにする
+         */
+        setupDevice([direction])
     }
 
     @objc private func toggleLaunchAtLogin(_ sender: NSMenuItem) {
@@ -258,7 +279,7 @@ extension AppDelegate: NSMenuDelegate {
     func menuNeedsUpdate(_ menu: NSMenu) {
         guard
             let warningItem,
-            let anchoredDeviceName = Settings.anchoredDeviceName
+            let anchoredDeviceName = Settings.anchoredDeviceName(for: .output)
         else {
             return
         }

@@ -13,6 +13,7 @@ With AirPods automatic switching, your AirPods can move to your iPhone, and the 
 ## Features
 
 - **Anchor to one output device**: pick it from the menu bar. When another output starts playing or the list of devices changes, AudioAnchor switches the output back to your device.
+- **Anchor the microphone too**: pick an input device the same way, for example to keep a USB or webcam mic after it is unplugged and plugged back in, or to keep the built-in mic when AirPods connect.
 - **Sound effects follow too**: both the main output and the output for alerts and sound effects are switched.
 - **Brings back Bluetooth devices**: if your anchored device is a paired Bluetooth device that isn't connected, for example AirPods that went to your iPhone, AudioAnchor asks your Mac to connect to it.
 - **Disable anytime** from the menu, without losing your choice. While disabled, choosing a device in the menu still switches to it once.
@@ -33,9 +34,9 @@ Or install it with [Homebrew](https://brew.sh):
 brew install --cask wata/tap/audioanchor
 ```
 
-Click the anchor icon in the menu bar and choose a device under Output. Choose it again to stop anchoring. Devices are matched by name. To be reconnected automatically, a Bluetooth device must already be paired with your Mac. macOS may ask for Bluetooth access the first time.
+Click the anchor icon in the menu bar and choose a device under Output or Input. Choose it again to stop anchoring. Devices are matched by name. To be reconnected automatically, a Bluetooth device must already be paired with your Mac. macOS may ask for Bluetooth access the first time.
 
-AudioAnchor only sets the system-wide default output. It does not route individual apps to different devices.
+AudioAnchor only sets the system-wide default output and input. It does not route individual apps to different devices.
 
 If you are using 0.1.x, it will not update to 1.0 or later automatically. Please download the latest version from Releases page manually.
 

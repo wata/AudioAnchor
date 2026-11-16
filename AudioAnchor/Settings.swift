@@ -54,20 +54,26 @@ enum Settings {
         try? SMAppService.loginItem(identifier: helperID).unregister()
     }
 
-    static var anchoredDeviceName: String? {
-        get {
-            UserDefaults.standard.string(forKey: .anchoredDeviceName)
-        }
-        set {
-            UserDefaults.standard.set(newValue, forKey: .anchoredDeviceName)
-        }
+    static func anchoredDeviceName(for direction: AudioDirection) -> String? {
+        UserDefaults.standard.string(forKey: .anchoredDeviceName(for: direction))
+    }
+
+    static func setAnchoredDeviceName(_ name: String?, for direction: AudioDirection) {
+        UserDefaults.standard.set(name, forKey: .anchoredDeviceName(for: direction))
     }
 }
 
 fileprivate extension String {
     static let isDisabled = "isDisabled"
-    static let anchoredDeviceName = "anchoredDeviceName"
     static let hasMigratedLaunchAtLogin = "LaunchAtLogin__hasMigrated"
+
+    /// 入力の固定を足す前から出力の固定先を保存しているキーは、更新しても固定先が外れないようそのまま使う
+    static func anchoredDeviceName(for direction: AudioDirection) -> String {
+        switch direction {
+        case .output: "anchoredDeviceName"
+        case .input: "anchoredInputDeviceName"
+        }
+    }
 }
 
 /**
