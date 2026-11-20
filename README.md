@@ -16,6 +16,7 @@ With AirPods automatic switching, your AirPods can move to your iPhone, and the 
 - **Anchor the microphone too**: pick an input device the same way, for example to keep a USB or webcam mic after it is unplugged and plugged back in, or to keep the built-in mic when AirPods connect.
 - **Sound effects follow too**: both the main output and the output for alerts and sound effects are switched.
 - **Brings back Bluetooth devices**: if your anchored device is a paired Bluetooth device that isn't connected, for example AirPods that went to your iPhone, AudioAnchor asks your Mac to connect to it.
+- **Tells you when it can't switch back**: if your anchored AirPods are connected but in use by another device, and an app on your Mac keeps another output open, macOS won't give them back. The menu bar icon gets a warning badge, and the menu shows which app is blocking them.
 - **Disable anytime** from the menu, without losing your choice. While disabled, choosing a device in the menu still switches to it once.
 - Launch at Login.
 - Free and open source. No account, no analytics.
@@ -43,7 +44,7 @@ If you are using 0.1.x, it will not update to 1.0 or later automatically. Please
 ## Development
 
 - `./scripts/install.sh` builds a Release build and replaces `/Applications/AudioAnchor.app` with it (`--no-launch` to skip launching).
-- `./scripts/release.sh <version> [--notes <file>]` bumps the version, builds a notarized zip, updates `appcast-v1.xml`, and publishes a GitHub Release. Use `--no-publish` to stop before committing.
+- `./scripts/release.sh <version> [--notes <file>]` bumps the version, builds a notarized zip, updates `appcast-v1.xml`, publishes a GitHub Release, and updates the Homebrew cask. Use `--no-publish` to stop before committing.
 
 ## License
 
